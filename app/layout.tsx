@@ -5,27 +5,27 @@ import "./globals.css";
 const benzin = localFont({
   src: [
     {
-      path: "../public/fonts/Benzin-Regular.woff2",
+      path: "./fonts/Benzin-Regular.woff2",
       weight: "400",
       style: "normal",
     },
     {
-      path: "../public/fonts/Benzin-Medium.woff2",
+      path: "./fonts/Benzin-Medium.woff2",
       weight: "500",
       style: "normal",
     },
     {
-      path: "../public/fonts/Benzin-Semibold.woff2",
+      path: "./fonts/Benzin-Semibold.woff2",
       weight: "600",
       style: "normal",
     },
     {
-      path: "../public/fonts/Benzin-Bold.woff2",
+      path: "./fonts/Benzin-Bold.woff2",
       weight: "700",
       style: "normal",
     },
     {
-      path: "../public/fonts/Benzin-ExtraBold.woff2",
+      path: "./fonts/Benzin-ExtraBold.woff2",
       weight: "800",
       style: "normal",
     },
