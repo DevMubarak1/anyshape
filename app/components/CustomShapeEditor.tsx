@@ -105,6 +105,39 @@ export default function CustomShapeEditor({
     setDrawPoints(prev => [...prev, { x, y }]);
   }, [isDrawing, mode]);
 
+  const handleTouchStart = useCallback((e: React.TouchEvent<SVGSVGElement>) => {
+    if (mode !== 'draw') return;
+    
+    const svg = canvasRef.current;
+    if (!svg) return;
+    
+    const touch = e.touches[0];
+    const rect = svg.getBoundingClientRect();
+    const x = ((touch.clientX - rect.left) / rect.width) * 100;
+    const y = ((touch.clientY - rect.top) / rect.height) * 100;
+    
+    setIsDrawing(true);
+    setDrawPoints([{ x, y }]);
+    // Prevent scrolling while drawing
+    e.preventDefault();
+  }, [mode]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent<SVGSVGElement>) => {
+    if (!isDrawing || mode !== 'draw') return;
+    
+    const svg = canvasRef.current;
+    if (!svg) return;
+    
+    const touch = e.touches[0];
+    const rect = svg.getBoundingClientRect();
+    const x = ((touch.clientX - rect.left) / rect.width) * 100;
+    const y = ((touch.clientY - rect.top) / rect.height) * 100;
+    
+    setDrawPoints(prev => [...prev, { x, y }]);
+    // Prevent scrolling while drawing
+    e.preventDefault();
+  }, [isDrawing, mode]);
+
   const handleDrawEnd = useCallback(() => {
     setIsDrawing(false);
   }, []);
@@ -356,6 +389,9 @@ export default function CustomShapeEditor({
                 onMouseMove={handleDrawMove}
                 onMouseUp={handleDrawEnd}
                 onMouseLeave={handleDrawEnd}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleDrawEnd}
               >
                 {/* Grid */}
                 <defs>

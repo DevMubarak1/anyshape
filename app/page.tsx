@@ -248,37 +248,35 @@ function HomeContent() {
             </div>
 
             <div className="bg-white rounded-2xl p-6 border border-gray-200 text-black">
-              <h3 className="text-lg font-semibold text-black mb-4">Why use AnyShape?</h3>
+              <h3 className="text-lg font-semibold text-black mb-4">{t.whyUseTitle}</h3>
                 <p>
-                  AnyShape is the ultimate tool for creating shaped images for your social media profiles, 
-                  presentations, and design projects. Unlike other tools, we process everything locally 
-                  in your browser, ensuring your photos never leave your device.
+                  {t.whyUseDesc}
                 </p>
                 <ul className="list-disc pl-5 space-y-2">
-                  <li><strong>No Uploads:</strong> Your privacy is our priority. Images are processed instantly on your device.</li>
-                  <li><strong>No Watermarks:</strong> Download clean, professional images without any branding.</li>
-                  <li><strong>High Resolution:</strong> Export up to 2048x2048px for crisp quality on any display.</li>
+                  <li><strong>{t.whyUseItem1Title}</strong> {t.whyUseItem1Desc}</li>
+                  <li><strong>{t.whyUseItem2Title}</strong> {t.whyUseItem2Desc}</li>
+                  <li><strong>{t.whyUseItem3Title}</strong> {t.whyUseItem3Desc}</li>
                 </ul>
               </div>
 
             <div className="bg-white rounded-2xl p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold text-black mb-4">Frequently Asked Questions</h3>
+              <h3 className="text-lg font-semibold text-black mb-4">{t.faqTitle}</h3>
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-medium text-black text-sm mb-1">Is my data safe?</h4>
-                  <p className="text-sm text-black">Yes! All image processing happens directly in your browser. Your images are never uploaded to any server, ensuring 100% privacy.</p>
+                  <h4 className="font-medium text-black text-sm mb-1">{t.faq1Title}</h4>
+                  <p className="text-sm text-black">{t.faq1Desc}</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-black text-sm mb-1">Is it really free?</h4>
-                  <p className="text-sm text-black">Yes, AnyShape is completely free and open-source. There are no hidden fees or premium features.</p>
+                  <h4 className="font-medium text-black text-sm mb-1">{t.faq2Title}</h4>
+                  <p className="text-sm text-black">{t.faq2Desc}</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-black text-sm mb-1">What image formats are supported?</h4>
-                  <p className="text-sm text-black">We support all common image formats including JPG, PNG, WebP, and GIF.</p>
+                  <h4 className="font-medium text-black text-sm mb-1">{t.faq3Title}</h4>
+                  <p className="text-sm text-black">{t.faq3Desc}</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-black text-sm mb-1">Can I use my own shapes?</h4>
-                  <p className="text-sm text-black">Absolutely! Use our Custom Shape Editor to draw, generate polygons, or paste SVG paths.</p>
+                  <h4 className="font-medium text-black text-sm mb-1">{t.faq4Title}</h4>
+                  <p className="text-sm text-black">{t.faq4Desc}</p>
                 </div>
               </div>
             </div>
