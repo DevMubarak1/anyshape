@@ -1,65 +1,308 @@
-import Image from "next/image";
+'use client';
+
+import React, { useState, useCallback, useEffect } from 'react';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import ShapeSelector from './components/ShapeSelector';
+import ImageCropper from '@/app/components/ImageCropper';
+import CustomShapeEditor from '@/app/components/CustomShapeEditor';
+import { Shape, presetShapes } from '@/app/components/shapes';
+import { LanguageProvider, useLanguage } from './i18n/LanguageContext';
+
+const STORAGE_KEY = 'anyshape-custom-shapes';
+
+function HomeContent() {
+  const { t } = useLanguage();
+  const [selectedShape, setSelectedShape] = useState<Shape>(presetShapes[0]);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [customShapes, setCustomShapes] = useState<Shape[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const loaded = JSON.parse(saved);
+          if (Array.isArray(loaded) && loaded.length > 0) {
+            // eslint-disable-next-line
+            setCustomShapes(loaded);
+          }
+        } catch (e) {
+          console.error('Failed to load custom shapes:', e);
+        }
+      }
+    }
+  }, []);
+
+  const [customPath, setCustomPath] = useState<string | undefined>(undefined);
+
+  const saveCustomShapes = useCallback((shapes: Shape[]) => {
+    setCustomShapes(shapes);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(shapes));
+    }
+  }, []);
+
+  const handleSelectShape = useCallback((shape: Shape) => {
+    setSelectedShape(shape);
+    setCustomPath(undefined);
+  }, []);
+
+  const handleSaveCustomShape = useCallback((shape: Shape) => {
+    const newShapes = [...customShapes, shape];
+    saveCustomShapes(newShapes);
+    setSelectedShape(shape);
+    setCustomPath(shape.path);
+  }, [customShapes, saveCustomShapes]);
+
+  const handleDeleteCustomShape = useCallback((shapeId: string) => {
+    const newShapes = customShapes.filter(s => s.id !== shapeId);
+    saveCustomShapes(newShapes);
+    if (selectedShape.id === shapeId) {
+      setSelectedShape(presetShapes[0]);
+      setCustomPath(undefined);
+    }
+  }, [customShapes, saveCustomShapes, selectedShape]);
+
+  const handleSelectCustomShape = useCallback((shape: Shape) => {
+    setSelectedShape(shape);
+    setCustomPath(shape.path);
+  }, []);
+
+  return (
+    <div className="flex flex-col min-h-screen bg-white">
+      <Header />
+      
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-8">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-black">
+            {t.heroTitle}
+          </h2>
+          <p className="text-black max-w-xl mx-auto">
+            {t.heroSubtitle}
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-[1fr,1.2fr] gap-8 items-start">
+          <div className="space-y-6">
+            <ShapeSelector
+              selectedShape={selectedShape}
+              onSelectShape={handleSelectShape}
+              onOpenCustomEditor={() => setIsEditorOpen(true)}
+            />
+
+            {customShapes.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-black mb-3">
+                  {t.yourCustomShapes}
+                </h3>
+                <div className="grid grid-cols-4 sm:grid-cols-8 lg:grid-cols-4 gap-2">
+                  {customShapes.map((shape) => (
+                    <div
+                      key={shape.id}
+                      onClick={() => handleSelectCustomShape(shape)}
+                      className={`relative aspect-square rounded-lg border-2 transition-all hover:scale-105 group cursor-pointer ${
+                        selectedShape.id === shape.id
+                          ? 'border-black bg-gray-50'
+                          : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
+                      title={shape.name}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          handleSelectCustomShape(shape);
+                        }
+                      }}
+                    >
+                      <svg viewBox="0 0 100 100" className="absolute inset-2">
+                        <path
+                          d={shape.path}
+                          fill={selectedShape.id === shape.id ? '#000000' : '#9ca3af'}
+                          className="transition-colors"
+                        />
+                      </svg>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteCustomShape(shape.id);
+                        }}
+                        className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-8">
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+              <ImageCropper key={selectedShape.id} shape={selectedShape} customPath={customPath} />
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 border border-gray-200">
+              <h3 className="text-lg font-semibold text-black mb-4">
+                {t.howItWorks}
+              </h3>
+              <div className="grid sm:grid-cols-3 gap-4">
+                {[
+                  {
+                    step: '1',
+                    title: t.step1Title,
+                    description: t.step1Desc,
+                  },
+                  {
+                    step: '2',
+                    title: t.step2Title,
+                    description: t.step2Desc,
+                  },
+                  {
+                    step: '3',
+                    title: t.step3Title,
+                    description: t.step3Desc,
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.step}
+                    className="text-center p-4 rounded-xl bg-gray-50 border border-gray-100"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-black text-white font-bold flex items-center justify-center mx-auto mb-3 text-sm">
+                      {item.step}
+                    </div>
+                    <h4 className="font-medium mb-1 text-black text-sm">{item.title}</h4>
+                    <p className="text-xs text-black">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 border border-gray-200">
+              <h3 className="text-lg font-semibold text-black mb-4">{t.features}</h3>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {[
+                  { 
+                    icon: (
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                      </svg>
+                    ), 
+                    title: '16+ Shapes', 
+                    desc: t.feature1 
+                  },
+                  { 
+                    icon: (
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    ), 
+                    title: 'Custom Editor', 
+                    desc: t.feature2 
+                  },
+                  { 
+                    icon: (
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    ), 
+                    title: 'Privacy First', 
+                    desc: t.feature3 
+                  },
+                  { 
+                    icon: (
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    ), 
+                    title: 'High Quality', 
+                    desc: t.feature4 
+                  },
+                  { 
+                    icon: (
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    ), 
+                    title: 'SVG Support', 
+                    desc: t.feature5 
+                  },
+                  { 
+                    icon: (
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    ), 
+                    title: '100% Free', 
+                    desc: t.feature6 
+                  },
+                ].map((feature, i) => (
+                  <div key={i} className="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
+                    <div className="text-black mb-2">{feature.icon}</div>
+                    <h4 className="font-semibold text-black text-sm mb-1">{feature.title}</h4>
+                    <p className="text-xs text-black">{feature.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 text-black">
+              <h3 className="text-lg font-semibold text-black mb-4">Why use AnyShape?</h3>
+                <p>
+                  AnyShape is the ultimate tool for creating shaped images for your social media profiles, 
+                  presentations, and design projects. Unlike other tools, we process everything locally 
+                  in your browser, ensuring your photos never leave your device.
+                </p>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li><strong>No Uploads:</strong> Your privacy is our priority. Images are processed instantly on your device.</li>
+                  <li><strong>No Watermarks:</strong> Download clean, professional images without any branding.</li>
+                  <li><strong>High Resolution:</strong> Export up to 2048x2048px for crisp quality on any display.</li>
+                </ul>
+              </div>
+
+            <div className="bg-white rounded-2xl p-6 border border-gray-200">
+              <h3 className="text-lg font-semibold text-black mb-4">Frequently Asked Questions</h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-black text-sm mb-1">Is my data safe?</h4>
+                  <p className="text-sm text-black">Yes! All image processing happens directly in your browser. Your images are never uploaded to any server, ensuring 100% privacy.</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-black text-sm mb-1">Is it really free?</h4>
+                  <p className="text-sm text-black">Yes, AnyShape is completely free and open-source. There are no hidden fees or premium features.</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-black text-sm mb-1">What image formats are supported?</h4>
+                  <p className="text-sm text-black">We support all common image formats including JPG, PNG, WebP, and GIF.</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-black text-sm mb-1">Can I use my own shapes?</h4>
+                  <p className="text-sm text-black">Absolutely! Use our Custom Shape Editor to draw, generate polygons, or paste SVG paths.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+
+      <CustomShapeEditor
+        isOpen={isEditorOpen}
+        onClose={() => setIsEditorOpen(false)}
+        onSaveShape={handleSaveCustomShape}
+        savedCustomShapes={customShapes}
+        onDeleteCustomShape={handleDeleteCustomShape}
+      />
+    </div>
+  );
+}
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <LanguageProvider>
+      <HomeContent />
+    </LanguageProvider>
   );
 }
